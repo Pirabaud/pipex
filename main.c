@@ -22,17 +22,37 @@ void	free_split(char **split)
 	free(split);
 }
 
-char	*check_path(char **path, char *cmd)
+/*char **init_path(char **env)
+{
+	char	**res;
+	int		i;
+
+	i = 0;
+			++i;
+	i = 0;
+	while( res != NULL)
+		ft_printf("%s\n", res[i++]); 
+	return (res);
+}*/
+
+char	*check_path(char *cmd, char **env)
 {
 	int	i;
 	char *res;
+	char **path;
 
 	i = 0;
+	while (ft_memcmp(env[i], "PATH", 4) != 0)
+		i++;
+	path = ft_split(env[i], ':');
+	i = 0;
 	res = ft_strjoin(path[i], cmd);
-	while (access(res, F_OK | R_OK | W_OK | X_OK) != 0 || path[i] != NULL)
+	while (ft_printf("%d\n", access(res, F_OK | R_OK | W_OK | X_OK) != 0))
 	{
 		free(res);
-		res = ft_strjoin(path[i], cmd);
+		res = ft_strjoin(path[i], "/");
+		res = ft_strjoin(res, cmd);
+		ft_printf("%s\n", res);
 		i++;
 	}
 	if (access(res, F_OK | R_OK | W_OK | X_OK) == 0)
@@ -43,21 +63,19 @@ char	*check_path(char **path, char *cmd)
 		return (NULL);
 }
 
-void	first_call(int *pipexfd, t_fils first)
+void	first_call(int *pipexfd, char **env, t_sons *first)
 {
 	int		fd;
-	char	*cmd;
 
-	cmd = check_path(
-	fd = open(first.file, O_RDONLY);
+	fd = open(first->file, O_RDONLY);
 	close(pipexfd[0]);
 	dup2(pipexfd[1], 1);
 	dup2(fd, 0);
 	close(fd);
-	execve(cmd[0], cmd, env);
+	execve(first->path, first->cmd, env);
 }
 
-void	second_call(int *pipexfd, t_fils second, pid_t first)
+void	second_call(char *file, char **cmd, int *pipexfd, char **env, pid_t first)
 {
 	int fd;
 
@@ -70,41 +88,42 @@ void	second_call(int *pipexfd, t_fils second, pid_t first)
 	execve(cmd[0], cmd, env);
 }
 
-char **init_path(char **env)
-{
-	char	**res;
-	int		i;
 
-	i = 0;
-	while (ft_memcmp(env[i], "PATH", 4) != 0)
-			++i; 
-}
+t_sons	*init_first(char **argv, char **env)
+{
+	t_sons *first;
+	
+	first = malloc(sizeof(t_sons));
+	first->file = ft_strdup(argv[1]);
+	first->cmd = ft_split(argv[2], ' ');
+	first->path = check_path(first->cmd[0], env);
+	first->son = fork();
+	return (first);
+}  
 
 int	main(int argc, char **argv, char **env)
 {
-	t_fils first;
-	t_fils second;
+	t_sons *first;
+	pid_t second;
 	char **cmd;
 	int pipexfd[2];
 
 	if (argc != 5)
-	
+	{
 		ft_printf("error");
 		return (0);
 	}
 	pipe(pipexfd);
-	first.cmd = ft_split(argv[2], ' ');
-	first.fils = fork();
-	first.path = init_path(env);
+	first = init_first(argv, env);
 	if (first == 0)
-		first_call(argv[1], cmd, pipexfd, env);
+		first_call(pipexfd, env, first);
 	cmd = ft_split(argv[3], ' ');
 	second = fork();
 	if (second == 0)
-		second_call(argv[4],cmd, pipexfd, env, first);
+		second_call(argv[4],cmd, pipexfd, env, first->son);
 	close(pipexfd[1]);
 	close(pipexfd[0]);
-	waitpid(first, NULL, 0);
+	waitpid(first->son, NULL, 0);
 	waitpid(second, NULL, 0);
 	free_split(cmd);
 }

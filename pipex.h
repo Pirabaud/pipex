@@ -19,13 +19,12 @@
 # include <sys/wait.h>
 # include <fcntl.h>
 
-typedef struct	s_fils
+typedef struct	s_sons
 {
 	char *file;
 	char **cmd;
-	char **env;
-	char **path;
-	pid_t fils;
-}	t_fils;
+	char *path;
+	pid_t son;
+}	t_sons;
 
 #endif
