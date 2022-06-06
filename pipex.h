@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/27 16:46:38 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/05 14:36:28 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/06 11:25:28 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 # include <sys/stat.h>
 # include <sys/wait.h>
 # include <fcntl.h>
+# include <errno.h>
+# include <stdio.h>
+# include <string.h>
 
 typedef struct	s_sons
 {
