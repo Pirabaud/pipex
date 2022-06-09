@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/01 09:59:03 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/07 15:00:59 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/09 18:30:25 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ void	free_sons(t_sons *sons)
 		free(sons->path);
 		sons->path = NULL;
 	}
+	sons->next = NULL;
 	free(sons);
 }
 
@@ -102,7 +103,7 @@ void	first_call(int *pipexfd, char **env, t_sons *first)
 
 	fd = open(first->file, O_RDONLY);
 	if (fd == -1)
-	print_error(strerror(errno), first, NULL);
+//	print_error(strerror(errno), first, NULL);
 	close(pipexfd[0]);
 	dup2(pipexfd[1], 1);
 	dup2(fd, 0);
@@ -110,14 +111,15 @@ void	first_call(int *pipexfd, char **env, t_sons *first)
 	execve(first->path, first->cmd, env);
 }
 
-void	second_call(t_sons *second, int *pipexfd, char **env, t_sons *first)
+void	second_call(t_sons *second, int *pipexfd, char **env, pid_t first, pid_t mid)
 {
 	int fd;
 
 	fd = open(second->file,O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
 	if (fd == -1)
-		print_error(strerror(errno), first, second);	
-	waitpid(first->son, NULL, 0);
+//		print_error(strerror(errno), first, second);	
+	waitpid(first, NULL, 0);
+	waitpid(mid, NULL, 0);
 	close(pipexfd[1]);
 	dup2(fd, 1);
 	dup2(pipexfd[0], 0);
@@ -138,75 +140,125 @@ t_sons	*init_null(void)
 	init->file = NULL;
 	init->cmd = NULL;
 	init->path = NULL;
+	init->next = NULL;
 	
 	return (init);
 }
 
 
-t_sons	*init_first(char **argv, char **env, t_sons *init)
+t_sons	*init_first(char **argv, char **env)
 {
 	t_sons *first;
 	
-	first = init;
+	first = init_null();
 	first->file = ft_strdup(argv[1]);
-	if (first->file == NULL)
-		print_error(strerror(errno), first, NULL);
+//	if (first->file == NULL)
+//		print_error(strerror(errno), first, NULL);
 	first->cmd = ft_split(argv[2], ' ');
-	if (first->cmd == NULL)
-		print_error(strerror(errno), first, NULL);
+//	if (first->cmd == NULL)
+//		print_error(strerror(errno), first, NULL);
 	first->path = check_path(first->cmd[0], env);
-	if (first->path == NULL)
-		print_error(strerror(errno), first, NULL);
-	first->son = fork();
-	if (first->son == -1)
-		print_error(strerror(errno), first, NULL);
+//	if (first->path == NULL)
+//		print_error(strerror(errno), first, NULL);
 	return (first);
 }
 
-t_sons	*init_second(char **argv, char **env, t_sons *init, t_sons *first)
+t_sons	*init_second(char **argv, char **env, int index, int argc)
 {
 	t_sons *second;
 	
-	second = init;
-	second->file = ft_strdup(argv[4]);	
-	if (second->file == NULL)
-		print_error(strerror(errno), second, first);
-	second->cmd	= ft_split(argv[3], ' ');
-	if (second->cmd == NULL)
-		print_error(strerror(errno), second, first);
+	second = init_null();
+	second->file = ft_strdup(argv[argc]);	
+//	if (second->file == NULL)
+//		print_error(strerror(errno), second, first);
+	second->cmd	= ft_split(argv[index], ' ');
+//	if (second->cmd == NULL)
+//		print_error(strerror(errno), second, first);
 	second->path = check_path(second->cmd[0], env);
-	if (second->path == NULL)
-		print_error(strerror(errno), second, first);
-	second->son = fork();
-	if (second->son == -1)
-		print_error(strerror(errno), second, first);
+//	if (second->path == NULL)
+//		print_error(strerror(errno), second, first);
+//	if (second->son == -1)
+//		print_error(strerror(errno), second, first);
 	return (second);
+}
+
+t_sons	*init_midl(int index, char **argv, char **env)
+{
+	t_sons	*midl;
+
+	midl = init_null();
+	midl->cmd = ft_split(argv[index], ' ');
+	midl->path = check_path(midl->cmd[0], env);
+	midl->next = NULL;
+	return (midl);
+}
+
+t_sons	*init_lstcmd(int argc, char **argv, char **env)
+{
+	t_sons *lstcmd;
+	t_sons *tmp;
+	int		i;
+	int		last_arg;
+
+	last_arg = argc - 1;
+	i = 3;
+	lstcmd = init_first(argv, env);
+	tmp = lstcmd;
+	while((argc - 3) < 0)
+	{
+		tmp->next = init_midl(i++, argv, env);
+		tmp = tmp->next;
+		--argc;
+	}
+	tmp->next = init_second(argv, env, i, last_arg);
+	return (lstcmd);
+	
+}
+
+void	mid_call(int	*pipexfd, char **env, t_sons *cmd, pid_t first)
+{
+	waitpid(first, NULL, 0);
+	close(pipexfd[0]);
+	dup2(pipexfd[1], 1);
+	execve(cmd->path, cmd->cmd, env);
 }
 
 int	main(int argc, char **argv, char **env)
 {
-	t_sons	*first;
-	t_sons	*second;
+	t_sons	*lst_cmd;
+	pid_t	first;
+	pid_t	mid;
+	pid_t	last;
 	int		pipexfd[2];
+	int		nb_cmd;
 
-	if (argc != 5)
+	nb_cmd = argc - 3;
+	if (argc < 5)
 	{
 		perror("bad count argc");
 		return(0);
 	}
 	pipe(pipexfd);
-	first =	init_null();
-	first = init_first(argv, env, first);
-	if (first->son == 0)
-		first_call(pipexfd, env, first);
-	second = init_null();
-	second = init_second(argv, env, second, first);
-	if (second->son == 0)
-		second_call(second, pipexfd, env, first);
+	lst_cmd = init_lstcmd(argc, argv, env);
+	first = fork();
+	if (first == 0)
+		first_call(pipexfd, env, lst_cmd);
+	lst_cmd = lst_cmd->next;
+	--nb_cmd;
+	while (nb_cmd > 1)
+	{
+		mid = fork();
+		if(mid == 0)
+			mid_call(pipexfd, env, lst_cmd, first);
+		lst_cmd = lst_cmd->next;
+		--nb_cmd;
+		waitpid(mid, NULL, 0);
+	} 
+	last = fork();
+	if (last == 0)
+		second_call(lst_cmd, pipexfd, env, first, mid);
 	close(pipexfd[1]);
 	close(pipexfd[0]);
-	waitpid(first->son, NULL, 0);
-	waitpid(second->son, NULL, 0);
-	free_sons(first);
-	free_sons(second);
+	waitpid(first, NULL, 0);
+	waitpid(last, NULL, 0);
 }
