@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/01 09:59:03 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/09 18:30:25 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/13 18:14:54 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,11 +215,13 @@ t_sons	*init_lstcmd(int argc, char **argv, char **env)
 	
 }
 
-void	mid_call(int	*pipexfd, char **env, t_sons *cmd, pid_t first)
+void	mid_call(int	*pipe, int	*pipenext, char **env, t_sons *cmd, pid_t first)
 {
 	waitpid(first, NULL, 0);
-	close(pipexfd[0]);
-	dup2(pipexfd[1], 1);
+	close(pipenext[0]);
+	close(pipe[1]);
+	dup2(pipe[1], 0);
+	dup2(pipenext[0], 1);
 	execve(cmd->path, cmd->cmd, env);
 }
 
@@ -229,36 +231,41 @@ int	main(int argc, char **argv, char **env)
 	pid_t	first;
 	pid_t	mid;
 	pid_t	last;
-	int		pipexfd[2];
+	int		pipexfd[3][2];
 	int		nb_cmd;
+	int		i;
 
+	i = 0;
 	nb_cmd = argc - 3;
 	if (argc < 5)
 	{
 		perror("bad count argc");
 		return(0);
 	}
-	pipe(pipexfd);
+	pipe(pipexfd[i]);
 	lst_cmd = init_lstcmd(argc, argv, env);
 	first = fork();
 	if (first == 0)
-		first_call(pipexfd, env, lst_cmd);
+		first_call(pipexfd[i], env, lst_cmd);
 	lst_cmd = lst_cmd->next;
 	--nb_cmd;
 	while (nb_cmd > 1)
 	{
+		pipe(pipexfd[++i]);
 		mid = fork();
 		if(mid == 0)
-			mid_call(pipexfd, env, lst_cmd, first);
+			mid_call(pipexfd[i - 1], pipexfd[i + 1], env, lst_cmd, first);
 		lst_cmd = lst_cmd->next;
+		close(pipexfd[i][1]);
+		close(pipexfd[i][0]);
 		--nb_cmd;
-		waitpid(mid, NULL, 0);
 	} 
 	last = fork();
 	if (last == 0)
-		second_call(lst_cmd, pipexfd, env, first, mid);
-	close(pipexfd[1]);
-	close(pipexfd[0]);
+		second_call(lst_cmd, pipexfd[i], env, first, mid);
+	close(pipexfd[i][1]);
+	close(pipexfd[i][0]);
 	waitpid(first, NULL, 0);
+	waitpid(mid, NULL, 0);
 	waitpid(last, NULL, 0);
 }
