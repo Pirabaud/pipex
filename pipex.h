@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/27 16:46:38 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/22 14:34:32 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/23 16:03:20 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ typedef struct	s_sons
 
 void	free_cmd(t_sons *cmd);
 void	free_dpointer(char **str);
-void	print_error(char *str, t_sons *first, t_sons *second);
+void	print_error(char *str, t_sons *first);
 
 void	first_call(int *pipexfd, char **env, t_sons *first);
 void	mid_call(int *pipe, int *pipenext, char **env, t_sons *cmd, pid_t first);

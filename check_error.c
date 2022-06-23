@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/21 18:43:13 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/22 14:43:06 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/23 15:59:09 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,9 @@ void	free_cmd(t_sons *cmd)
 	free(cmd);
 }
 
-void	print_error(char *str, t_sons *first, t_sons *second)
+void	print_error(char *str, t_sons *first)
 {
-	if (first != NULL)
-		free_cmd(first);
-	if (second != NULL)
-		free_cmd(second);
+	free_cmd(first);
 	(void)str;
 	perror(str);
 	exit(1);
