@@ -84,7 +84,7 @@ t_sons	*init_lstcmd(char **argv, char **env, int argc, int i)
 	(void)argc;
 	if ( i == 1)
 	cmd = init_first(argv, env);
-	else if ( i < argc - 4)
+	else if ( i < argc - 3)
 		cmd = init_midl(i, argv, env);
 	else
 		cmd = init_last(argv, env, i);

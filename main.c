@@ -12,7 +12,6 @@
 
 #include "pipex.h"
 
-
 int	main(int argc, char **argv, char **env)
 {
 	t_sons	*cmd;
@@ -23,18 +22,17 @@ int	main(int argc, char **argv, char **env)
 	i = 0;
 	if (argc < 5)
 	{
-		perror("bad count argci\n");
+		perror("bad count argc\n");
 		return (0);
 	}
-	pipe(pipexfd[0]);
+	pipe(pipexfd[i]);
 	cmd = init_lstcmd(argv, env, argc, i + 1);
-	son[0] = fork();
-	if (son[0] == 0)
+	son[i] = fork();
+	if (son[i] == 0)
 		first_call(pipexfd[i], env, cmd);
 	free_cmd(cmd);
 	while (++i < (argc - 4))
-	{
-		ft_printf("salut");
+	{ 
 		pipe(pipexfd[i]);
 		cmd = init_lstcmd(argv, env, argc, i + 1);
 		son[i] = fork();
@@ -46,11 +44,12 @@ int	main(int argc, char **argv, char **env)
 	}
 	cmd = init_lstcmd(argv, env, argc, argc - 1);
 	son[i] = fork();
-	if (son[i--] == 0)
-		last_call(cmd, pipexfd[i], env, son[i - 1]);
-	close(pipexfd[i][1]);
-	close(pipexfd[i][0]);
-	waitpid(son[0], NULL, 0); 
-	waitpid(son[1], NULL, 0); 
-	//waitpid(son[2], NULL, 0); 
+	if (son[i] == 0)
+		last_call(cmd, pipexfd[i - 1], env, son[i - 1]);
+	close(pipexfd[i - 1][1]);
+	close(pipexfd[i - 1][0]);
+	
+	i = 0;
+	while (i > 0)
+		waitpid(son[i--], NULL, 0);
 }
