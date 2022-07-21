@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/21 18:29:15 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/23 18:24:37 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/06/25 15:15:36 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 t_sons	*init_null(void)
 {
-	t_sons *init;
+	t_sons	*init;
 
 	init = malloc(sizeof(t_sons));
 	if (init == NULL)
@@ -22,22 +22,25 @@ t_sons	*init_null(void)
 		perror(strerror(errno));
 		exit (1);
 	}
+	init->env = NULL;
 	init->file = NULL;
 	init->cmd = NULL;
 	init->path = NULL;
-	
 	return (init);
 }
 
 t_sons	*init_last(char **argv, char **env, int index)
 {
-	t_sons *second;
-	
+	t_sons	*second;
+
 	second = init_null();
+	second->env = ft_tabdup(env);
+	if (second->env == NULL)
+		print_error(strerror(errno), second);
 	second->file = ft_strdup(argv[index]);
 	if (second->file == NULL)
 		print_error(strerror(errno), second);
-	second->cmd	= ft_split(argv[index - 1], ' ');
+	second->cmd = ft_split(argv[index - 1], ' ');
 	if (second->cmd == NULL)
 		print_error(strerror(errno), second);
 	second->path = check_path(second->cmd[0], env);
@@ -48,9 +51,12 @@ t_sons	*init_last(char **argv, char **env, int index)
 
 t_sons	*init_first(char **argv, char **env)
 {
-	t_sons *first;
+	t_sons	*first;
 
 	first = init_null();
+	first->env = ft_tabdup(env);
+	if (first->env == NULL)
+		print_error(strerror(errno), first);
 	first->file = ft_strdup(argv[1]);
 	if (first->file == NULL)
 		print_error(strerror(errno), first);
@@ -66,9 +72,12 @@ t_sons	*init_first(char **argv, char **env)
 t_sons	*init_midl(int index, char **argv, char **env)
 {
 	t_sons	*midl;
-	
+
 	midl = init_null();
-	midl->cmd = ft_split(argv[index], ' ');
+	midl->env = ft_tabdup(env);
+	if (midl->env == NULL)
+		print_error(strerror(errno), midl);
+	midl->cmd = ft_split(argv[index + 1], ' ');
 	if (midl->cmd == NULL)
 		print_error(strerror(errno), midl);
 	midl->path = check_path(midl->cmd[0], env);
@@ -79,12 +88,11 @@ t_sons	*init_midl(int index, char **argv, char **env)
 
 t_sons	*init_lstcmd(char **argv, char **env, int argc, int i)
 {
-	t_sons *cmd;
+	t_sons	*cmd;
 
-	(void)argc;
-	if ( i == 1)
-	cmd = init_first(argv, env);
-	else if ( i < argc - 3)
+	if (i == 1)
+		cmd = init_first(argv, env);
+	else if (i < argc - 3)
 		cmd = init_midl(i, argv, env);
 	else
 		cmd = init_last(argv, env, i);

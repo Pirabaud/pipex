@@ -6,11 +6,11 @@
 #    By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/05/27 16:34:26 by pirabaud          #+#    #+#              #
-#    Updated: 2022/06/22 11:24:53 by pirabaud         ###   ########.fr        #
+#    Updated: 2022/07/18 15:01:23 by pirabaud         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-SRCS 	= main.c call.c check_path.c init_cmd.c check_error.c
+SRCS 	= main.c call.c check_path.c init_cmd.c check_error.c here_doc.c
 
 OBJS	= ${SRCS:.c=.o}
 

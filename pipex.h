@@ -6,7 +6,7 @@
 /*   By: pirabaud <pirabaud@student.42angoulem      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/27 16:46:38 by pirabaud          #+#    #+#             */
-/*   Updated: 2022/06/23 16:03:20 by pirabaud         ###   ########.fr       */
+/*   Updated: 2022/07/18 15:02:27 by pirabaud         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,26 +22,29 @@
 # include <stdio.h>
 # include <string.h>
 
-typedef struct	s_sons
+typedef struct s_sons
 {
-	char 			*file;
-	char 			**cmd;
-	char 			*path;
-	struct s_sons	*next;
-	pid_t			*son;
-	int				nb_cmd;
-	char			**env;
-}	t_sons;
+	char	*file;
+	char	**cmd;
+	char	*path;
+	pid_t	*son;
+	int		nb_cmd;
+	char	**env;
+}			t_sons;
 
 void	free_cmd(t_sons *cmd);
 void	free_dpointer(char **str);
 void	print_error(char *str, t_sons *first);
+void	check_arg(int argc, char **argv, char **env);
 
-void	first_call(int *pipexfd, char **env, t_sons *first);
-void	mid_call(int *pipe, int *pipenext, char **env, t_sons *cmd, pid_t first);
-void	last_call(t_sons *second, int *pipexfd, char **env, pid_t prev);
+void	first_call(int *pipexfd, t_sons *first);
+void	mid_call(int *pipe, int *pipenext, t_sons *cmd, pid_t first);
+void	last_call(t_sons *second, int *pipexfd, pid_t prev);
 
 t_sons	*init_lstcmd(char **argv, char **env, int argc, int i);
+char	**ft_tabdup(char **env);
 char	*check_path(char *cmd, char **env);
+
+void	here_doc(char **argv, char **env);
 
 #endif
