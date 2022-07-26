@@ -18,7 +18,7 @@ void	first_call(int *pipexfd, t_sons *first)
 
 	fd = open(first->file, O_RDONLY);
 	if (fd == -1)
-		print_error(strerror(errno), first);
+		print_error("error first", first);
 	close(pipexfd[0]);
 	dup2(pipexfd[1], 1);
 	dup2(fd, 0);
@@ -30,12 +30,14 @@ void	last_call(t_sons *second, int *pipexfd, pid_t prev)
 {
 	int	fd;
 
-	waitpid(prev, NULL, 0);
+	(void)prev;
+	//waitpid(prev, NULL, 0);
 	fd = open(second->file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
 	if (fd == -1)
-		print_error(strerror(errno), second);
+		print_error("error second", second);
 	close(pipexfd[1]);
 	dup2(fd, 1);
+	printf("dans last call\n");
 	dup2(pipexfd[0], 0);
 	close(fd);
 	execve(second->path, second->cmd, second->env);

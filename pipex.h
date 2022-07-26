@@ -42,6 +42,8 @@ void	mid_call(int *pipe, int *pipenext, t_sons *cmd, pid_t first);
 void	last_call(t_sons *second, int *pipexfd, pid_t prev);
 
 t_sons	*init_lstcmd(char **argv, char **env, int argc, int i);
+t_sons	*init_last(char **argv, char **env, int index);
+t_sons	*init_null();
 char	**ft_tabdup(char **env);
 char	*check_path(char *cmd, char **env);
 
